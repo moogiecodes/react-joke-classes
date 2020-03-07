@@ -1,19 +1,11 @@
 import React from "react";
-import JokeList from "./JokeList";
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <JokeList />
-//     </div>
-//   );
-// }
+import ClassJokeList from "./ClassJokeList";  // BUG: was './JokeList'
 
 class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <JokeList />
+        <ClassJokeList />
       </div>
     );
   }

@@ -1,27 +1,51 @@
 import React from "react";
-import JokeList from "./JokeList";
 import "./JokeList.css";
-import Joke from "./Joke";
+import ClassJoke from "./ClassJoke";
+import axios from 'axios';
 
 
-class JokeList extends React.Component {
+class ClassJokeList extends React.Component {
   constructor(props) {
     super(props);
     this.state = { jokes: [] }
     this.generateNewJokes = this.generateNewJokes.bind(this);
+    this.vote = this.vote.bind(this);
   }
 
   async componentDidMount() {
-    {
+    let j = [...this.state.jokes]; //could be hard-coded as empty array?
+    let seenJokes = new Set();
+    try {
+      while (j.length < this.props.numJokesToGet) {
+        let res = await axios.get("https://icanhazdadjoke.com", {
+          headers: { Accept: "application/json" }
+        });
+        let { status, ...jokeObj } = res.data;
+
+        if (!seenJokes.has(jokeObj.id)) {
+          seenJokes.add(jokeObj.id);
+          j.push({ ...jokeObj, votes: 0 });
+        } else {
+          console.error("duplicate found!");
+        }
+      }
+      this.setState({ jokes: j })
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async componentDidUpdate() {
+    if (this.state.jokes.length === 0) {
       let j = [...this.state.jokes]; //could be hard-coded as empty array?
       let seenJokes = new Set();
       try {
-        while (j.length < numJokesToGet) {
+        while (j.length < this.props.numJokesToGet) {
           let res = await axios.get("https://icanhazdadjoke.com", {
             headers: { Accept: "application/json" }
           });
           let { status, ...jokeObj } = res.data;
-
+  
           if (!seenJokes.has(jokeObj.id)) {
             seenJokes.add(jokeObj.id);
             j.push({ ...jokeObj, votes: 0 });
@@ -60,18 +84,21 @@ class JokeList extends React.Component {
         </button>
 
           {sortedJokes.map(j => (
-            <Joke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={vote} />
+            <ClassJoke text={j.joke} key={j.id} id={j.id} votes={j.votes} vote={this.vote} />
           ))}
         </div>
+      )
+    } else {
+      return (
+        <div className="loading"><i className="fas fa-spinner fa-7x fa-spin"></i></div>
       );
     }
-    return null;
   }
 
 } // end class comp
 
-JokeList.defaultProps = {
+ClassJokeList.defaultProps = {
   numJokesToGet: 10
 }
 
-export default JokeList;
+export default ClassJokeList;
